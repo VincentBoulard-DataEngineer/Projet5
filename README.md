@@ -14,7 +14,7 @@ Ce script permet de migrer un dataset CSV de patients et leurs admissions vers u
    - **Noms** : première lettre de chaque nom en majuscule (`title case`), suppression des espaces superflus.  
    - **Dates** : conversion des dates (`date_of_admission` et `discharge_date`) en objets `datetime`.
 
-3. **Tests pré-migration**  
+3. **Statistiques pré-migration**  
    - Nombre total de lignes, types de colonnes, valeurs manquantes.  
    - Nombre de doublons
 
@@ -34,6 +34,12 @@ Ce script permet de migrer un dataset CSV de patients et leurs admissions vers u
 
 ---
 
+## Schéma MongoDB
+
+![Schéma MongoDB](/assets/schema.png "Schéma MongoDB")
+
+---
+
 ## Configuration
 
 Le script utilise les variables d’environnement suivantes :
@@ -42,7 +48,7 @@ Le script utilise les variables d’environnement suivantes :
 |-------------------|-----------------------------------------------|----------------------------------|
 | `MONGO_URI`        | URI de connexion MongoDB                        | `mongodb://localhost:27017/`     |
 | `MONGO_DB_NAME`    | Nom de la base MongoDB                           | `healthcare_db`                  |
-| `CSV_PATH`         | Chemin du fichier CSV                            | `healthcare_dataset.csv`         |
+| `CSV_PATH`         | Chemin du fichier CSV                            | `data/healthcare_dataset.csv`         |
 | `DROP_COLLECTIONS` | Supprimer les collections avant migration       | `true`                           |
 
 ---
@@ -51,15 +57,11 @@ Le script utilise les variables d’environnement suivantes :
 
 1. Installer les dépendances :
 
-```bash
-pip install -r requirements.txt
-```
+        pip install -r requirements.txt
 
 2. Lancer le script :
 
-```bash
-python migration.py
-```
+        python migration.py
 
 3. Suivre la migration  
    - La barre de progression indique l’avancement.  
@@ -77,9 +79,7 @@ Exemple de tests (fichier `test_migration.py`) :
 
 Pour exécuter les tests :
 
-```bash
-pytest test_migration.py
-```
+    pytest test_migration.py
 
 ---
 

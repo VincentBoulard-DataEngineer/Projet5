@@ -13,7 +13,7 @@ services:
 
   migration:
     build: .
-    container_name: migration_script
+    container_name: migration
     depends_on:
       - mongodb
     environment:

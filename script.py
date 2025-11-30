@@ -1,7 +1,6 @@
 import os
 import pandas as pd
 from pymongo import MongoClient
-from bson.objectid import ObjectId
 from tqdm import tqdm
 
 
@@ -10,18 +9,20 @@ from tqdm import tqdm
 # ================================
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 DB_NAME = os.getenv("MONGO_DB_NAME", "healthcare_db")
-CSV_PATH = os.getenv("CSV_PATH", "healthcare_dataset.csv")
+CSV_PATH = os.getenv("CSV_PATH", "data/healthcare_dataset.csv")
 DROP_COLLECTIONS = os.getenv("DROP_COLLECTIONS", "true").lower() == "true"
 
 
 # ================================
 # Fonctions de nettoyage
 # ================================
+# Enlève les espaces inutile et met la 1ère lettre en majuscule
 def normalize_name(name):
   if pd.isna(name):
     return None
   return name.strip().title()
 
+# Convertit les chaines date en objet datetime
 def parse_date(date_str):
   try:
     return pd.to_datetime(date_str)
@@ -72,58 +73,99 @@ num_duplicates = df.duplicated(subset=["name", "age", "gender", "blood_type"]).s
 print(f"\nNombre de doublons détectés : {num_duplicates}")
 
 
-# -------------------------------
+# ================================
 # Suppression des doublons
-# -------------------------------
+# ================================
 df = df.drop_duplicates()
 print(f"Nombre de lignes après suppression des doublons : {len(df)}")
+
+
+# ================================
+# Création d'index
+# ================================
+patients_col.create_index([("name", 1), ("age", 1), ("gender", 1), ("blood_type", 1)])
+admissions_col.create_index([("patient_id", 1), ("date_of_admission", -1), ("hospital", -1),("medical_condition", -1)])
 
 # ================================
 # Migration du CSV vers MongoDB
 # ================================
 print("Début de la migration...")
-patients_cache = {}
 
-for row in tqdm(df.itertuples(index=False), total=len(df), desc="Migration"):
+patients_cache = {}
+admissions_cache = {}
+
+for row in tqdm(df.itertuples(index=False), total=len(df), desc="Progression"):
 
   # Tuple identifiant un patient
   name = normalize_name(row.name)
   age = int(row.age) if not pd.isna(row.age) else None
   gender = row.gender
   blood_type = row.blood_type
+
   patient_key = (name, age, gender, blood_type)
 
   # Récupération ou insertion patient
   if patient_key in patients_cache:
     patient_id = patients_cache[patient_key]
   else:
-    patient_doc = {
+    existing_patient = None
+
+    # Si la collection n'a pas été vidée, on vérifie si le patient existe déjà
+    if not DROP_COLLECTIONS:
+      existing_patient = patients_col.find_one({
         "name": name,
         "age": age,
         "gender": gender,
         "blood_type": blood_type
-    }
-    patient_id = patients_col.insert_one(patient_doc).inserted_id
+      })
+
+    if existing_patient:
+      patient_id = existing_patient["_id"]
+    else:
+      patient_doc = {
+        "name": name,
+        "age": age,
+        "gender": gender,
+        "blood_type": blood_type
+      }
+      patient_id = patients_col.insert_one(patient_doc).inserted_id
 
     patients_cache[patient_key] = patient_id
 
-  # Insertion admission
-  admission_doc = {
-      "patient_id": ObjectId(patient_id),
-      "medical_condition": row.medical_condition,
-      "hospital": row.hospital,
-      "doctor": row.doctor,
-      "insurance_provider": row.insurance_provider,
-      "billing_amount": float(row.billing_amount) if not pd.isna(row.billing_amount) else None,
-      "room_number": row.room_number,
-      "admission_type": row.admission_type,
-      "date_of_admission": parse_date(row.date_of_admission),
-      "discharge_date": parse_date(row.discharge_date),
-      "medication": row.medication,
-      "test_results": row.test_results
-  }
+  # Tuple identifiant une admission
+  admission_key = (patient_id, row.date_of_admission, row.hospital, row.medical_condition)
+  
+  # Insertion admission si non existante ou DROP_COLLECTIONS
+  if admission_key not in admissions_cache:
+    existing = None
 
-  admissions_col.insert_one(admission_doc)
+    # Si la collection n'a pas été vidée, on vérifie si l'admission existe déjà
+    if not DROP_COLLECTIONS:
+      existing = admissions_col.find_one({
+        "patient_id": patient_id,
+        "date_of_admission": row.date_of_admission,
+        "hospital": row.hospital,
+        "medical_condition": row.medical_condition
+      })
+
+    # On insère si rien n'a été trouvé
+    if not existing:
+      admission_doc = {
+        "patient_id": patient_id,
+        "medical_condition": row.medical_condition,
+        "hospital": row.hospital,
+        "doctor": row.doctor,
+        "insurance_provider": row.insurance_provider,
+        "billing_amount": row.billing_amount,
+        "room_number": row.room_number,
+        "admission_type": row.admission_type,
+        "date_of_admission": row.date_of_admission,
+        "discharge_date": row.discharge_date,
+        "medication": row.medication,
+        "test_results": row.test_results
+      }
+      
+      admissions_col.insert_one(admission_doc)
 
 print("\nMigration terminée avec succès !")
 

@@ -86,6 +86,6 @@ Pour exécuter les tests :
 ## Notes
 
 - Si `DROP_COLLECTIONS` est `True`, les collections sont supprimées avant migration.  
-- Si `DROP_COLLECTIONS` est `False`, le script vérifie l’existence des patients avant insertion.  
+- Si `DROP_COLLECTIONS` est `False`, le script vérifie l’existence des patients et des admissions avant insertion.  
 - La barre de progression est utile pour les fichiers CSV volumineux.  
 - Le script assure un format uniforme pour les noms et les dates afin de garantir la cohérence des données.

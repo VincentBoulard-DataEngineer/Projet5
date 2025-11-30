@@ -7,7 +7,7 @@ Ce script permet de migrer un dataset CSV de patients et leurs admissions vers u
 ## Fonctionnalités
 
 1. **Chargement du CSV**  
-   - Nettoie les noms de colonnes (espaces remplacés par `_` et en minuscules).  
+   - Nettoie les noms de colonnes (espaces remplacés par `_` et mots en minuscules).  
    - Supprime les doublons.
 
 2. **Nettoyage et transformation des données**  
@@ -21,7 +21,7 @@ Ce script permet de migrer un dataset CSV de patients et leurs admissions vers u
 4. **Insertion dans MongoDB**  
    - Création des collections `patients` et `admissions`.  
    - Vérification de l’existence d’un patient pour éviter les doublons.  
-   - Insertion des admissions liées à chaque patient.  
+   - Insertion des admissions liées à chaque patient avec vérification d'existence.  
    - Barre de progression avec `tqdm`.
 
 5. **Statistiques post-migration**  
@@ -44,12 +44,12 @@ Ce script permet de migrer un dataset CSV de patients et leurs admissions vers u
 
 Le script utilise les variables d’environnement suivantes :
 
-| Variable           | Description                                     | Valeur par défaut                  |
-|-------------------|-----------------------------------------------|----------------------------------|
-| `MONGO_URI`        | URI de connexion MongoDB                        | `mongodb://localhost:27017/`     |
-| `MONGO_DB_NAME`    | Nom de la base MongoDB                           | `healthcare_db`                  |
-| `CSV_PATH`         | Chemin du fichier CSV                            | `data/healthcare_dataset.csv`         |
-| `DROP_COLLECTIONS` | Supprimer les collections avant migration       | `true`                           |
+| Variable           | Description                               | Valeur par défaut             |
+|--------------------|-------------------------------------------|-------------------------------|
+| `MONGO_URI`        | URI de connexion MongoDB                  | `mongodb://localhost:27017/`  |
+| `MONGO_DB_NAME`    | Nom de la base MongoDB                    | `healthcare_db`               |
+| `CSV_PATH`         | Chemin du fichier CSV                     | `data/healthcare_dataset.csv` |
+| `DROP_COLLECTIONS` | Supprimer les collections avant migration | `true`                        |
 
 ---
 

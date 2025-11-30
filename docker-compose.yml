@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  mongodb:
+    image: mongo:6
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - healthcare_network
+
+  migration:
+    build: .
+    container_name: migration_script
+    depends_on:
+      - mongodb
+    environment:
+      MONGO_URI: "mongodb://mongodb:27017/"
+      MONGO_DB_NAME: "healthcare_db"
+      CSV_PATH: "/data/healthcare_dataset.csv"
+      DROP_COLLECTIONS: "true"
+    volumes:
+      - ./data:/data
+    networks:
+      - healthcare_network
+
+volumes:
+  mongo_data:
+
+networks:
+  healthcare_network:
+    driver: bridge

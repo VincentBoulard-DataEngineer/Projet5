@@ -53,15 +53,15 @@ Le script utilise les variables d’environnement suivantes :
 
 ---
 
-## Installation et utilisation
+## Installation et utilisation (Docker Compose)
 
-1. Installer les dépendances :
+1. Construire les images :
 
-        pip install -r requirements.txt
+        docker-compose build
 
-2. Lancer le script :
+2. Lancer la migration
 
-        python migration.py
+        docker-compose up
 
 3. Suivre la migration  
    - La barre de progression indique l’avancement.  
@@ -71,7 +71,7 @@ Le script utilise les variables d’environnement suivantes :
 
 ## Tests avec Pytest
 
-Exemple de tests (fichier `test_migration.py`) :
+Les tests peuvent également être exécutés dans Docker (fichier `test_migration.py`).
 
 - Vérification des collections existantes.  
 - Vérification que les collections ne sont pas vides.  
@@ -79,7 +79,7 @@ Exemple de tests (fichier `test_migration.py`) :
 
 Pour exécuter les tests :
 
-    pytest test_migration.py
+    docker-compose run --rm migration pytest -vv
 
 ---
 

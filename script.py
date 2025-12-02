@@ -48,7 +48,7 @@ if DROP_COLLECTIONS:
 # ================================
 # Chargement du CSV
 # ================================
-print(f"Chargement du fichier {CSV_PATH}...")
+print(f"\nChargement du fichier {CSV_PATH}...")
 df = pd.read_csv(CSV_PATH)
 
 # Nettoyage du nom des colonnes
@@ -58,6 +58,7 @@ df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
 # ================================
 # Vérifications avant migration
 # ================================
+print("\nStatistiques avant migration :")
 print(f"Nombre total de lignes : {len(df)}")
 
 # Colonnes et types
@@ -83,14 +84,19 @@ print(f"Nombre de lignes après suppression des doublons : {len(df)}")
 # ================================
 # Création d'index
 # ================================
+# Pour la recherche de patient exsistant
 patients_col.create_index([("name", 1), ("age", 1), ("gender", 1), ("blood_type", 1)])
-admissions_col.create_index([("patient_id", 1), ("date_of_admission", -1), ("hospital", -1),("medical_condition", -1)])
+# Pour faciliter la récupération de toutes les admissions d'un patient
+admissions_col.create_index([("patient_id", 1)])
+# Pour la recherche d'admission existante
+admissions_col.create_index([("patient_id", 1), ("date_of_admission", -1), ("hospital", 1),("room_number", 1)])
 
 # ================================
 # Migration du CSV vers MongoDB
 # ================================
-print("Début de la migration...")
+print("\nDébut de la migration...")
 
+# Cache des documents existants
 patients_cache = {}
 admissions_cache = {}
 
@@ -104,7 +110,7 @@ for row in tqdm(df.itertuples(index=False), total=len(df), desc="Progression"):
 
   patient_key = (name, age, gender, blood_type)
 
-  # Récupération ou insertion patient
+  # Récupération du patient_id en cache
   if patient_key in patients_cache:
     patient_id = patients_cache[patient_key]
   else:
@@ -119,6 +125,7 @@ for row in tqdm(df.itertuples(index=False), total=len(df), desc="Progression"):
         "blood_type": blood_type
       })
 
+    # On assigne le patient_id si retrouvé en base, sinon on le crée
     if existing_patient:
       patient_id = existing_patient["_id"]
     else:
@@ -130,12 +137,13 @@ for row in tqdm(df.itertuples(index=False), total=len(df), desc="Progression"):
       }
       patient_id = patients_col.insert_one(patient_doc).inserted_id
 
+    # On ajoute le patien_id dans le cache
     patients_cache[patient_key] = patient_id
 
   # Tuple identifiant une admission
-  admission_key = (patient_id, row.date_of_admission, row.hospital, row.medical_condition)
+  admission_key = (patient_id, row.date_of_admission, row.hospital, row.room_number)
   
-  # Insertion admission si non existante ou DROP_COLLECTIONS
+  # On traite l'admission si elle n'est pas dans le cache
   if admission_key not in admissions_cache:
     existing = None
 
@@ -172,6 +180,6 @@ print("\nMigration terminée avec succès !")
 # ================================
 # Vérifications après migration
 # ================================
-print("\nStatistiques post-migration :")
+print("\nStatistiques après migration :")
 print(f"Nombre de patients : {patients_col.count_documents({})}")
 print(f"Nombre d'admissions : {admissions_col.count_documents({})}")

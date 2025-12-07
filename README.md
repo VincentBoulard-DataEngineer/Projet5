@@ -57,7 +57,7 @@ Trois rôles sont envisagés afin de séparer clairement les responsabilités et
 
 | Rôle                          | Permissions                                  | Usage                                         |
 | ----------------------------- | -------------------------------------------- | --------------------------------------------- |
-| **Administrateur (root)**     | Droits complets sur la base                  | Gestion des utilisateurs, maintenance système |
+| **Administrateur (`root`)**   | Droits complets sur la base                  | Gestion des utilisateurs, maintenance système |
 | **Data Engineer (`dbOwner`)** | Lecture + écriture + gestion des collections | Migration, nettoyage, ingestion des données   |
 | **Data Analyst (`read`)**     | Accès en lecture seule                       | Analyse, exploration, reporting               |
 

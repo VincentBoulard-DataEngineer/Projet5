@@ -12,14 +12,12 @@ services:
     build: .
     depends_on:
       - mongodb
-    environment:
-      MONGO_URI: "mongodb://mongodb:27017"
-      MONGO_DB_NAME: "healthcare_db"
-      CSV_PATH: "/data/healthcare_dataset.csv"
-      DROP_COLLECTIONS: "true"
+    env_file:
+      - .env
     volumes:
       - ./data:/data
       - ./test_migration.py:/app/test_migration.py
+      - ./logs:/logs 
     networks:
       - healthcare_network
 

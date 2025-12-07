@@ -1,6 +1,6 @@
 # Projet 5 - Maintenez et documentez un système de stockage des données sécurisé et performant
 
-Ce script permet de migrer un dataset CSV de patients et leurs admissions vers une base MongoDB, avec nettoyage, suppression de doublons et statistiques avant/après migration.
+Ce script permet de migrer un dataset CSV de patients et leurs admissions vers une base MongoDB, avec nettoyage, suppression de doublons et statistiques avant/après migration, le tout au sein d'un conteneur Docker.
 
 ---
 

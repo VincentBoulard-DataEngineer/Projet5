@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copie du script de migration
-COPY script.py .
+COPY migration.py .
 
 # Commande exécutée par défaut
-CMD ["python", "script.py"]
+CMD ["python", "migration.py"]
